@@ -2,7 +2,6 @@ name: Build and deploy Aseprite
 
 on:
   workflow_dispatch:
-
   schedule:
     - cron: '0 0 * * *'
   push:
@@ -42,7 +41,6 @@ jobs:
         key: cached_version
     - name: Should we start new build?
       id: should_build
-      if: steps.version_check.outputs.cache-hit != 'true'
       run: echo "::set-output name=should_build::true"
     - name: Create Release
       id: create_release
