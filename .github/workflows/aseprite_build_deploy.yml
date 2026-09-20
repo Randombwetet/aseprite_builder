@@ -2,9 +2,6 @@ name: Build and deploy Aseprite
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
 
 env:
   BUILD_TYPE: Release
