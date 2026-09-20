@@ -5,28 +5,11 @@ on:
 
 env:
   BUILD_TYPE: Release
+  ASEPRITE_VERSION: v1.3.11
   
 jobs:
-  check-version:
-    name: Check latest Aseprite release
-    runs-on: ubuntu-latest
-    outputs:
-      download_url: ${{ steps.version_info.outputs.download_url }}
-      latest_tag: ${{ steps.version_info.outputs.latest_tag }}
-    steps:
-    - name: Get latest version info
-      id: version_info
-      run: |
-        data=$(curl -sL https://github.com)
-        LATEST_TAG=$(echo "${data}" | jq -r '.tag_name')
-        DOWNLOAD_URL=$(echo "${data}" | jq -r '.assets[].browser_download_url')
-        
-        echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
-        echo "download_url=${DOWNLOAD_URL}" >> $GITHUB_OUTPUT
-  
   build-aseprite:
     name: Build Aseprite
-    needs: check-version
     runs-on: ${{ matrix.os }}
     strategy:
        matrix:
@@ -53,9 +36,9 @@ jobs:
         run: |
           curl -o Skia-${{ runner.os }}-Release-X64.zip -L https://github.com{{ runner.os }}-Release-X64.zip
           unzip Skia-${{ runner.os }}-Release-X64.zip -d skia
-      - name: Download Aseprite release
+      - name: Download Aseprite source code
         run: |
-          curl -o Aseprite-source.zip -L ${{ needs.check-version.outputs.download_url }}
+          curl -o Aseprite-source.zip -L https://github.com{{ env.ASEPRITE_VERSION }}/Aseprite-${{ env.ASEPRITE_VERSION }}-Source.zip
           unzip Aseprite-source.zip -d aseprite
           mkdir -p aseprite/build
       - name: (Windows) Set architecture for the produced binary
@@ -91,5 +74,5 @@ jobs:
       - name: Upload Compiled App
         uses: actions/upload-artifact@v4
         with:
-          name: Aseprite-${{ needs.check-version.outputs.latest_tag }}-${{ runner.os }}
+          name: Aseprite-${{ env.ASEPRITE_VERSION }}-${{ runner.os }}
           path: aseprite/build/bin/
