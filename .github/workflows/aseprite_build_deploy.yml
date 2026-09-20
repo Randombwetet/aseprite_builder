@@ -5,17 +5,18 @@ on:
 
 env:
   BUILD_TYPE: Release
+  ASEPRITE_VERSION: v1.3.11
   
 jobs:
   build-aseprite:
     name: Build Aseprite (Windows)
     runs-on: windows-latest
     steps:
-      - name: Checkout Aseprite Source Code
+      - name: Checkout Aseprite Stable Source
         uses: actions/checkout@v4
         with:
           repository: aseprite/aseprite
-          ref: main
+          ref: refs/tags/v1.3.11
           submodules: recursive
           path: aseprite
 
@@ -57,5 +58,5 @@ jobs:
       - name: Upload Compiled App Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Aseprite-Windows-Latest
+          name: Aseprite-v1.3.11-Windows
           path: aseprite/build/bin/
