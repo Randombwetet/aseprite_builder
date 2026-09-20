@@ -21,29 +21,26 @@ jobs:
           
       - name: Download Skia if not in cache
         if: steps.skia-cache.outputs.cache-hit != 'true'
+        shell: powershell
         run: |
           curl -o Skia-Windows-Release-X64.zip -L https://github.com
-          unzip Skia-Windows-Release-X64.zip -d skia
+          Expand-Archive -Path Skia-Windows-Release-X64.zip -DestinationPath skia
           
       - name: Download Aseprite source code
+        shell: powershell
         run: |
           curl -o Aseprite-source.zip -L https://github.com{{ env.ASEPRITE_VERSION }}/Aseprite-${{ env.ASEPRITE_VERSION }}-Source.zip
-          unzip Aseprite-source.zip -d aseprite
-          mkdir -p aseprite/build
+          Expand-Archive -Path Aseprite-source.zip -DestinationPath aseprite
+          New-Item -ItemType Directory -Force -Path aseprite/build
           
-      - name: Set architecture for the produced binary
-        shell: cmd
-        run: call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        
-      - name: Run CMake
+      - name: Configure CMake and Run Ninja Build
         working-directory: aseprite/build
         shell: cmd
-        run: cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DLAF_BACKEND=skia -DSKIA_DIR=../../skia -DSKIA_LIBRARY_DIR=../../skia/out/Release-x64 -G Ninja ..
-        
-      - name: Run Ninja
-        working-directory: aseprite/build
-        run: ninja aseprite
-        
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cmake -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DLAF_BACKEND=skia -DSKIA_DIR=../../skia -DSKIA_LIBRARY_DIR=../../skia/out/Release-x64 -G Ninja ..
+          ninja aseprite
+          
       - name: Clean up build binaries
         working-directory: aseprite/build/bin
         shell: bash
@@ -51,7 +48,8 @@ jobs:
         
       - name: Make portable configuration
         working-directory: aseprite/build/bin
-        run: echo '# This file is here so Aseprite behaves as a portable program' > aseprite.ini
+        shell: cmd
+        run: echo # This file is here so Aseprite behaves as a portable program > aseprite.ini
         
       - name: Upload Compiled App Artifact
         uses: actions/upload-artifact@v4
