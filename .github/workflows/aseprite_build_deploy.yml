@@ -5,13 +5,20 @@ on:
 
 env:
   BUILD_TYPE: Release
-  ASEPRITE_VERSION: v1.3.11
   
 jobs:
   build-aseprite:
     name: Build Aseprite (Windows)
     runs-on: windows-latest
     steps:
+      - name: Checkout Aseprite Source Code
+        uses: actions/checkout@v4
+        with:
+          repository: aseprite/aseprite
+          ref: main
+          submodules: recursive
+          path: aseprite
+
       - name: Get Skia from cache
         id: skia-cache
         uses: actions/cache@v4
@@ -26,12 +33,8 @@ jobs:
           curl -o Skia-Windows-Release-X64.zip -L https://github.com
           Expand-Archive -Path Skia-Windows-Release-X64.zip -DestinationPath skia
           
-      - name: Download Aseprite source code
-        shell: powershell
-        run: |
-          curl -o Aseprite-source.zip -L https://github.com{{ env.ASEPRITE_VERSION }}/Aseprite-${{ env.ASEPRITE_VERSION }}-Source.zip
-          Expand-Archive -Path Aseprite-source.zip -DestinationPath aseprite
-          New-Item -ItemType Directory -Force -Path aseprite/build
+      - name: Setup Build Directory
+        run: mkdir aseprite/build
           
       - name: Configure CMake and Run Ninja Build
         working-directory: aseprite/build
@@ -54,5 +57,5 @@ jobs:
       - name: Upload Compiled App Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Aseprite-${{ env.ASEPRITE_VERSION }}-Windows
+          name: Aseprite-Windows-Latest
           path: aseprite/build/bin/
